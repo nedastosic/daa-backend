@@ -17,4 +17,8 @@ public class ParameterCodelistService {
     public ParameterCodelist findParameterCodelistsByName(String name){
         return parameterCodelistRepository.findParameterCodelistsByName(name);
     }
+
+    public ParameterCodelist findParameterCodelistsById(long id){
+        return parameterCodelistRepository.findParameterCodelistsById(id);
+    }
 }

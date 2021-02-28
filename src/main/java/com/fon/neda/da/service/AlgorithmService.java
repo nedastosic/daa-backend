@@ -28,8 +28,13 @@ public class AlgorithmService {
     public List<Algorithm> findAllAlgorithms(){
         return (List<Algorithm>) algorithmRepository.findAll();
     }
+
     public Algorithm findAlgorithmByName(String name){
         return algorithmRepository.findAlgorithmByName(name);
+    }
+
+    public Algorithm findAlgorithmById(long id){
+        return algorithmRepository.findAlgorithmById(id);
     }
 
 }

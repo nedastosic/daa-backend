@@ -9,4 +9,6 @@ public interface ParameterCodelistRepository extends CrudRepository<ParameterCod
 
     ParameterCodelist findParameterCodelistsByName(String name);
 
+    ParameterCodelist findParameterCodelistsById(long id);
+
 }
