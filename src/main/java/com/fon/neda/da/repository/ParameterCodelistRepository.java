@@ -4,6 +4,8 @@ import com.fon.neda.da.entity.ParameterCodelist;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ParameterCodelistRepository extends CrudRepository<ParameterCodelist, Long> {
 
@@ -11,4 +13,5 @@ public interface ParameterCodelistRepository extends CrudRepository<ParameterCod
 
     ParameterCodelist findParameterCodelistsById(long id);
 
+    List<ParameterCodelist> findParameterCodelistByAlgorithmId (long algorithmId);
 }

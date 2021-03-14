@@ -2,10 +2,7 @@ package com.fon.neda.da.entity;
 
 import lombok.AllArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @AllArgsConstructor
@@ -14,6 +11,9 @@ public class ParameterCodelist {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String name;
+    @ManyToOne
+    @JoinColumn(name="algorithmId")
+    private Algorithm algorithm;
 
     public ParameterCodelist() {
 
@@ -33,5 +33,13 @@ public class ParameterCodelist {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Algorithm getAlgorithm() {
+        return algorithm;
+    }
+
+    public void setAlgorithm(Algorithm algorithm) {
+        this.algorithm = algorithm;
     }
 }

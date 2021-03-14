@@ -2,6 +2,7 @@ package com.fon.neda.da.algorithms;
 
 import com.fon.neda.da.util.ArffConverter;
 import com.fon.neda.da.util.CSVToArffConverter;
+import com.fon.neda.da.util.EvaluationDetails;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesMultinomial;
@@ -24,7 +25,7 @@ public class NaiveBayes implements IAlgorithm{
         this.className = className;
     }
 
-    public Evaluation evaluate() throws Exception {
+    public EvaluationDetails evaluate() throws Exception {
 
 
         Instances data = (new ConverterUtils.DataSource("src/main/resources/files/"+ fileName + ".arff")).getDataSet();
@@ -36,13 +37,21 @@ public class NaiveBayes implements IAlgorithm{
         Classifier classifier = new NaiveBayesMultinomial();
         classifier.buildClassifier(trainData);
 
-        Evaluation eval = new Evaluation(trainData);
-        eval.evaluateModel(classifier, testData);
-        System.out.println("** Naive Bayes Evaluation with Datasets **");
-        System.out.println(eval.toSummaryString());
-        System.out.print(" the expression for the input data as per alogorithm is ");
-        System.out.println(classifier);
-        return eval;
+        Evaluation wekaEvaluation = new Evaluation(trainData);
+        wekaEvaluation.evaluateModel(classifier, testData);
+
+        com.fon.neda.da.entity.Evaluation evaluation = new com.fon.neda.da.entity.Evaluation();
+        evaluation.setPrecision(wekaEvaluation.precision(1));
+        evaluation.setAccuracy(wekaEvaluation.areaUnderROC(1));
+        evaluation.setRecall(wekaEvaluation.recall(1));
+        evaluation.setF1(wekaEvaluation.fMeasure(1));
+
+        EvaluationDetails evaluationDetails = new EvaluationDetails();
+        evaluationDetails.setEvaluation(evaluation);
+        evaluationDetails.setCorrectlyClassifiedInstances((int) wekaEvaluation.correct());
+        evaluationDetails.setIncorrectlyClassifiedInstances((int) wekaEvaluation.incorrect());
+
+        return evaluationDetails;
     }
 
 }

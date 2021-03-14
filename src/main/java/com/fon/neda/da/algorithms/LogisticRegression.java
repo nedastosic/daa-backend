@@ -3,6 +3,7 @@ package com.fon.neda.da.algorithms;
 
 import com.fon.neda.da.util.ArffConverter;
 import com.fon.neda.da.util.CSVToArffConverter;
+import com.fon.neda.da.util.EvaluationDetails;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.core.Instance;
@@ -23,7 +24,7 @@ public class LogisticRegression implements IAlgorithm{
         this.className = className;
     }
 
-    public Evaluation evaluate() throws Exception {
+    public EvaluationDetails evaluate() throws Exception {
 
         Instances data = (new ConverterUtils.DataSource("src/main/resources/files/"+ fileName + ".arff")).getDataSet();
         data.setClassIndex(data.numAttributes() - 1);
@@ -32,10 +33,21 @@ public class LogisticRegression implements IAlgorithm{
         Instances testingDataSet = data.testCV(2, 0);
         Classifier classifier = new weka.classifiers.functions.Logistic();
         classifier.buildClassifier(trainingDataSet);
-        Evaluation eval = new Evaluation(trainingDataSet);
-        eval.evaluateModel(classifier, testingDataSet);
+        Evaluation wekaEvaluation = new Evaluation(trainingDataSet);
+        wekaEvaluation.evaluateModel(classifier, testingDataSet);
 
-        return eval;
+        com.fon.neda.da.entity.Evaluation evaluation = new com.fon.neda.da.entity.Evaluation();
+        evaluation.setPrecision(wekaEvaluation.precision(1));
+        evaluation.setAccuracy(wekaEvaluation.areaUnderROC(1));
+        evaluation.setRecall(wekaEvaluation.recall(1));
+        evaluation.setF1(wekaEvaluation.fMeasure(1));
+
+        EvaluationDetails evaluationDetails = new EvaluationDetails();
+        evaluationDetails.setEvaluation(evaluation);
+        evaluationDetails.setCorrectlyClassifiedInstances((int) wekaEvaluation.correct());
+        evaluationDetails.setIncorrectlyClassifiedInstances((int) wekaEvaluation.incorrect());
+
+        return evaluationDetails;
     }
 
 }

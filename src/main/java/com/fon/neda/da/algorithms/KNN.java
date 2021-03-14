@@ -2,6 +2,7 @@ package com.fon.neda.da.algorithms;
 
 import com.fon.neda.da.util.ArffConverter;
 import com.fon.neda.da.util.CSVToArffConverter;
+import com.fon.neda.da.util.EvaluationDetails;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.lazy.IBk;
@@ -21,7 +22,7 @@ public class KNN implements IAlgorithm {
     }
 
 
-    public Evaluation evaluate() throws Exception{
+    public EvaluationDetails evaluate() throws Exception{
 
         CSVToArffConverter.convert(fileName);
         ArffConverter.convert(fileName, className);
@@ -31,10 +32,21 @@ public class KNN implements IAlgorithm {
         Classifier ibk = new IBk(k);
         ibk.buildClassifier(data);
 
-        Evaluation eval = new Evaluation(data);
-        eval.evaluateModel(ibk, data);
+        Evaluation wekaEvaluation = new Evaluation(data);
+        wekaEvaluation.evaluateModel(ibk, data);
 
-        return eval;
+        com.fon.neda.da.entity.Evaluation evaluation = new com.fon.neda.da.entity.Evaluation();
+        evaluation.setPrecision(wekaEvaluation.precision(1));
+        evaluation.setAccuracy(wekaEvaluation.areaUnderROC(1));
+        evaluation.setRecall(wekaEvaluation.recall(1));
+        evaluation.setF1(wekaEvaluation.fMeasure(1));
+
+        EvaluationDetails evaluationDetails = new EvaluationDetails();
+        evaluationDetails.setEvaluation(evaluation);
+        evaluationDetails.setCorrectlyClassifiedInstances((int) wekaEvaluation.correct());
+        evaluationDetails.setIncorrectlyClassifiedInstances((int) wekaEvaluation.incorrect());
+
+        return evaluationDetails;
 
     }
 

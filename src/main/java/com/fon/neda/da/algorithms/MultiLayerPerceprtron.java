@@ -8,7 +8,6 @@ import org.neuroph.core.events.LearningEventListener;
 import org.neuroph.core.learning.error.MeanSquaredError;
 import org.neuroph.eval.ClassifierEvaluator;
 import org.neuroph.eval.ErrorEvaluator;
-import org.neuroph.eval.EvaluationResult;
 import org.neuroph.eval.classification.ClassificationMetrics;
 import org.neuroph.eval.classification.ConfusionMatrix;
 import org.neuroph.nnet.MultiLayerPerceptron;
@@ -20,21 +19,50 @@ import com.fon.neda.da.entity.Evaluation;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-public class NeuralNetwork implements LearningEventListener {
+public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm {
+    private String fileName;
+    private int inputLayer;
+    private int outputLayer;
+    private int hiddenLayer;
+    private int numberOfHiddenLayers;
+    private double learningRate;
+    private double maxError;
+    private int maxIterations;
 
     private int total, correct, incorrect;
 
     // if output is greater then this value it is considered as malign
     private float classificationThreshold = 0.5f;
 
-    public EvaluationDetails process(String fileName)  throws Exception {
+    public MultiLayerPerceprtron(String fileName, int inputLayer, int outputLayer, int hiddenLayer, int numberOfHiddenLayers, double learningRate, double maxError, int maxIterations) {
+        this.fileName = fileName;
+        this.inputLayer = inputLayer;
+        this.outputLayer = outputLayer;
+        this.hiddenLayer = hiddenLayer;
+        this.numberOfHiddenLayers = numberOfHiddenLayers;
+        this.learningRate = learningRate;
+        this.maxError = maxError;
+        this.maxIterations = maxIterations;
+    }
+
+    public EvaluationDetails evaluate()  throws Exception {
         EvaluationDetails eval;
-        String dataSetFile = "src/main/resources/files/diabetes.csv";
-        int inputsCount = 8;
-        int outputsCount = 1;
+        //String dataSetFile = "src/main/resources/files/diabetes.csv";
+        String dataSetFile = "src/main/resources/files/" + fileName + ".csv";
+        int inputsCount = inputLayer;
+        int outputsCount = outputLayer;
+
+        System.out.println("File name: " + fileName);
+        System.out.println("inputLayer: " + inputLayer);
+        System.out.println("outputLayer: " + outputLayer);
+        System.out.println("hiddenLayer: " + hiddenLayer);
+        System.out.println("numberOfHiddenLayers: " + numberOfHiddenLayers);
+        System.out.println("learningRate: " + learningRate);
+        System.out.println("maxError: " + maxError);
+        System.out.println("maxIterations: " + maxIterations);
 
         // Create data set from file
-        DataSet dataSet = DataSet.createFromFile(dataSetFile, inputsCount, outputsCount, ",");
+        DataSet dataSet = DataSet.createFromFile(dataSetFile, inputsCount, outputsCount, ",", true);
 
         // Creatinig training set (70%) and test set (30%)
         DataSet[] trainTestSplit = dataSet.split(0.7, 0.3);
@@ -48,14 +76,24 @@ public class NeuralNetwork implements LearningEventListener {
 
         System.out.println("Creating neural network...");
         //Create MultiLayerPerceptron neural network
-        MultiLayerPerceptron neuralNet = new MultiLayerPerceptron(inputsCount, 20, 10, outputsCount);
+
+        int[] networkConfiguration = new int[numberOfHiddenLayers + 2];
+
+        networkConfiguration[0] = inputsCount;
+        networkConfiguration[networkConfiguration.length - 1] = outputsCount;
+
+        for (int i = 1; i <= numberOfHiddenLayers; i++){
+            networkConfiguration[i] = hiddenLayer;
+        }
+
+        MultiLayerPerceptron neuralNet = new MultiLayerPerceptron(networkConfiguration);
         //attach listener to learning rule
         MomentumBackpropagation learningRule = (MomentumBackpropagation) neuralNet.getLearningRule();
         learningRule.addListener(this);
 
-        learningRule.setLearningRate(0.6);
-        learningRule.setMaxError(0.07);
-        learningRule.setMaxIterations(100000);
+        learningRule.setLearningRate(learningRate);
+        learningRule.setMaxError(maxError);
+        learningRule.setMaxIterations(maxIterations);
 
         System.out.println("Training network...");
         //train the network with training set

@@ -15,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import weka.classifiers.Evaluation;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -43,8 +42,6 @@ public class EvaluationController {
     private ParameterCodelistService parameterCodelistService;
     @Autowired
     private ParameterService parameterService;
-    @Autowired
-    private AlgorithmParameterCodelistService algorithmParameterCodelistService;
 
     @GetMapping("/algorithms")
     public List<Algorithm> allAlgorithms() {
@@ -110,12 +107,9 @@ public class EvaluationController {
             Files.write(path, bytes);
             User user = userService.findByUsername(((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername());
             Dataset dataset = new Dataset(file.getOriginalFilename(), path.toString(), user);
-            evaluation = new com.fon.neda.da.entity.Evaluation(user, dataset);
+           // evaluation = new com.fon.neda.da.entity.Evaluation(user, dataset);
             dataset = datasetService.save(dataset);
-            evaluation = evaluationService.save(evaluation);
-
-            System.out.println("EVALUATION ID " + evaluation.getId());
-
+            //evaluation = evaluationService.save(evaluation);
 
             List<List<String>> records = new ArrayList<>();
             try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/files/" + file.getOriginalFilename()))) {
@@ -134,91 +128,20 @@ public class EvaluationController {
             }
 
             IAlgorithm a = AlgorithmFactory.generate(algorithm, params, file.getOriginalFilename().split("\\.")[0], className);
-            Evaluation e = a.evaluate();
+            //Evaluation e = a.evaluate();
 
-            evaluation.setPrecision(e.precision(1));
-            evaluation.setAccuracy(e.areaUnderROC(1));
-            evaluation.setRecall(e.recall(1));
-            evaluation.setF1(e.fMeasure(1));
+            evaluationDetails = a.evaluate();
+
+            evaluation = evaluationDetails.getEvaluation();
             evaluation.setAlgorithm(algorithmService.findAlgorithmById(algorithm));
+            evaluation.setUser(user);
+            evaluation.setDataset(dataset);
 
-            for (AlgorithmParameterCodelist apc : algorithmParameterCodelistService.findAlgorithmParameterCodelistByAlgorithmId(algorithm)) {
-                ParameterCodelist parameterCodelist = parameterCodelistService.findParameterCodelistsById(apc.getParameterCodelist().getId());
+
+            for (ParameterCodelist parameterCodelist : parameterCodelistService.findParameterCodelistByAlgorithmId(algorithm)) {
                 Parameter parameter = new Parameter(AlgorithmFactory.getParams(algorithm, params, parameterCodelist.getName()), evaluation, parameterCodelist);
                 parameterService.save(parameter);
             }
-
-
-            evaluationDetails.setEvaluation(evaluation);
-            evaluationDetails.setCorrectlyClassifiedInstances((int) e.correct());
-            evaluationDetails.setIncorrectlyClassifiedInstances((int) e.incorrect());
-            evaluationDetails.setConfusionMatrix(e.toMatrixString());
-
-
-/*
-            switch (algorithm) {
-                case 1:
-                    ObjectMapper mapper = new ObjectMapper();
-                    KNNParams knnParams = new KNNParams();
-                    try {
-                        knnParams = mapper.readValue(params.getBytes(), KNNParams.class);
-                        System.out.println(knnParams);
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    e = new KNN().knn(file.getOriginalFilename().split("\\.")[0],knnParams.k, className);
-                    evaluation.setPrecision(e.precision(1));
-                    evaluation.setAccuracy(e.areaUnderROC(1));
-                    evaluation.setRecall(e.recall(1));
-                    evaluation.setF1(e.fMeasure(1));
-                    evaluation.setAlgorithm(algorithmService.findAlgorithmByName("KNN"));
-                    System.out.println("Class name " + className + " " + knnParams.k);
-
-                    ParameterCodelist parameterCodelist = parameterCodelistService.findParameterCodelistsByName("k");
-                    Parameter parameter = new Parameter(Integer.toString(knnParams.k), evaluation, parameterCodelist);
-                    parameterService.save(parameter);
-
-                    evaluationDetails.setEvaluation(evaluation);
-                    evaluationDetails.setCorrectlyClassifiedInstances((int) e.correct());
-                    evaluationDetails.setIncorrectlyClassifiedInstances((int) e.incorrect());
-                    evaluationDetails.setConfusionMatrix(e.toMatrixString());
-
-                    break;
-                case 2:
-                    e = new NaiveBayes().naiveBayes(file.getOriginalFilename().split("\\.")[0], className);
-                    evaluation.setPrecision(e.precision(1));
-                    evaluation.setAccuracy(e.areaUnderROC(1));
-                    evaluation.setRecall(e.recall(1));
-                    evaluation.setF1(e.fMeasure(1));
-                    evaluation.setAlgorithm(algorithmService.findAlgorithmByName("Naive Bayes"));
-
-                    evaluationDetails.setEvaluation(evaluation);
-                    evaluationDetails.setCorrectlyClassifiedInstances((int) e.correct());
-                    evaluationDetails.setIncorrectlyClassifiedInstances((int) e.incorrect());
-
-                    break;
-                case 3:
-                    e = new LogisticRegression().logisticRegression(file.getOriginalFilename().split("\\.")[0], className);
-                    evaluation.setPrecision(e.precision(1));
-                    evaluation.setAccuracy(e.areaUnderROC(1));
-                    evaluation.setRecall(e.recall(1));
-                    evaluation.setF1(e.fMeasure(1));
-                    evaluation.setAlgorithm(algorithmService.findAlgorithmByName("Logistic regression"));
-                    evaluationDetails.setEvaluation(evaluation);
-                    evaluationDetails.setCorrectlyClassifiedInstances((int) e.correct());
-                    evaluationDetails.setIncorrectlyClassifiedInstances((int) e.incorrect());
-                    break;
-
-                case 4:
-                    evaluationDetails = new NeuralNetwork().process(file.getOriginalFilename().split("\\.")[0]);
-                    evaluation.setAlgorithm(algorithmService.findAlgorithmByName("Neural network"));
-
-                    //evaluationDetails.setEvaluation(evaluation);
-                    //evaluationDetails.setCorrectlyClassifiedInstances((int) e.correct());
-                    //evaluationDetails.setIncorrectlyClassifiedInstances((int) e.incorrect());
-                    break;
-            }
-*/
 
             evaluationService.save(evaluation);
 

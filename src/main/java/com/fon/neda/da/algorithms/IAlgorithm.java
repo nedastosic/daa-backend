@@ -1,7 +1,8 @@
 package com.fon.neda.da.algorithms;
 
+import com.fon.neda.da.util.EvaluationDetails;
 import weka.classifiers.Evaluation;
 
 public interface IAlgorithm {
-    Evaluation evaluate() throws Exception;
+    EvaluationDetails evaluate() throws Exception;
 }
