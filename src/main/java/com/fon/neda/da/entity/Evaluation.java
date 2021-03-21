@@ -30,6 +30,10 @@ public class Evaluation {
     private double recall;
     @Column(name="f1")
     private double f1;
+    @Column(name="elapsedTimeInMillis")
+    private long elapsedTimeInMillis;
+    @Column(name="memoryFootprintInBytes")
+    private long memoryFootprintInBytes;
     @ManyToOne
     @JoinColumn(name="userId")
     private User user;
@@ -85,6 +89,22 @@ public class Evaluation {
 
     public void setF1(double f1) {
         this.f1 = f1;
+    }
+
+    public long getElapsedTimeInMillis() {
+        return elapsedTimeInMillis;
+    }
+
+    public void setElapsedTimeInMillis(long elapsedTimeInMillis) {
+        this.elapsedTimeInMillis = elapsedTimeInMillis;
+    }
+
+    public long getMemoryFootprintInBytes() {
+        return memoryFootprintInBytes;
+    }
+
+    public void setMemoryFootprintInBytes(long memoryFootprintInBytes) {
+        this.memoryFootprintInBytes = memoryFootprintInBytes;
     }
 
     public User getUser() {

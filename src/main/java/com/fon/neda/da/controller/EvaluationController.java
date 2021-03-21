@@ -130,9 +130,22 @@ public class EvaluationController {
             IAlgorithm a = AlgorithmFactory.generate(algorithm, params, file.getOriginalFilename().split("\\.")[0], className);
             //Evaluation e = a.evaluate();
 
+            System.gc();
+            Runtime runtime = Runtime.getRuntime();
+            long usedMemoryBefore = runtime.totalMemory() - runtime.freeMemory();
+            System.out.println("Used Memory before" + usedMemoryBefore);
+
+            long startTime  = System.nanoTime();
             evaluationDetails = a.evaluate();
+            long endTime = System.nanoTime();
+            System.out.println("Elapsed time: " + (endTime - startTime));
+
+            long usedMemoryAfter = runtime.totalMemory() - runtime.freeMemory();
+            System.out.println("Memory increased:" + (usedMemoryAfter-usedMemoryBefore));
 
             evaluation = evaluationDetails.getEvaluation();
+            evaluation.setElapsedTimeInMillis((endTime - startTime) / 1000000);
+            evaluation.setMemoryFootprintInBytes((usedMemoryAfter-usedMemoryBefore));
             evaluation.setAlgorithm(algorithmService.findAlgorithmById(algorithm));
             evaluation.setUser(user);
             evaluation.setDataset(dataset);
