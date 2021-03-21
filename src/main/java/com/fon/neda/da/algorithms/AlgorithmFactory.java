@@ -23,7 +23,7 @@ public class AlgorithmFactory {
                 case 4:
                     ObjectMapper multiLayerPerceptronMapper = new ObjectMapper();
                     MultiLayerPerceptronParams multiLayerPerceptronParams = multiLayerPerceptronMapper.readValue(params.getBytes(), MultiLayerPerceptronParams.class);
-                    return new MultiLayerPerceprtron(fileName, multiLayerPerceptronParams.inputLayer, multiLayerPerceptronParams.outputLayer, multiLayerPerceptronParams.hiddenLayer, multiLayerPerceptronParams.numberOfHiddenLayers, multiLayerPerceptronParams.learningRate, multiLayerPerceptronParams.maxError,
+                    return new MultiLayerPerceprtron(fileName, multiLayerPerceptronParams.hiddenLayer, multiLayerPerceptronParams.numberOfHiddenLayers, multiLayerPerceptronParams.learningRate, multiLayerPerceptronParams.maxError,
                             multiLayerPerceptronParams.maxIterations);
                 default:
                     return null;

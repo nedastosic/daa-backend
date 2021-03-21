@@ -16,13 +16,14 @@ import org.neuroph.nnet.learning.MomentumBackpropagation;
 import org.neuroph.util.data.norm.MaxNormalizer;
 import org.neuroph.util.data.norm.Normalizer;
 import com.fon.neda.da.entity.Evaluation;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm {
     private String fileName;
-    private int inputLayer;
-    private int outputLayer;
     private int hiddenLayer;
     private int numberOfHiddenLayers;
     private double learningRate;
@@ -34,10 +35,8 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
     // if output is greater then this value it is considered as malign
     private float classificationThreshold = 0.5f;
 
-    public MultiLayerPerceprtron(String fileName, int inputLayer, int outputLayer, int hiddenLayer, int numberOfHiddenLayers, double learningRate, double maxError, int maxIterations) {
+    public MultiLayerPerceprtron(String fileName, int hiddenLayer, int numberOfHiddenLayers, double learningRate, double maxError, int maxIterations) {
         this.fileName = fileName;
-        this.inputLayer = inputLayer;
-        this.outputLayer = outputLayer;
         this.hiddenLayer = hiddenLayer;
         this.numberOfHiddenLayers = numberOfHiddenLayers;
         this.learningRate = learningRate;
@@ -45,21 +44,24 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         this.maxIterations = maxIterations;
     }
 
-    public EvaluationDetails evaluate()  throws Exception {
+    public EvaluationDetails evaluate() throws Exception {
         EvaluationDetails eval;
         //String dataSetFile = "src/main/resources/files/diabetes.csv";
         String dataSetFile = "src/main/resources/files/" + fileName + ".csv";
-        int inputsCount = inputLayer;
-        int outputsCount = outputLayer;
+        BufferedReader reader = new BufferedReader(new FileReader(dataSetFile));
+        String line = reader.readLine();
+        String[] values = line.split(",");
+
+        int inputsCount = values.length - 1;
+        int outputsCount = 1;
 
         System.out.println("File name: " + fileName);
-        System.out.println("inputLayer: " + inputLayer);
-        System.out.println("outputLayer: " + outputLayer);
         System.out.println("hiddenLayer: " + hiddenLayer);
         System.out.println("numberOfHiddenLayers: " + numberOfHiddenLayers);
         System.out.println("learningRate: " + learningRate);
         System.out.println("maxError: " + maxError);
         System.out.println("maxIterations: " + maxIterations);
+
 
         // Create data set from file
         DataSet dataSet = DataSet.createFromFile(dataSetFile, inputsCount, outputsCount, ",", true);
@@ -82,7 +84,7 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         networkConfiguration[0] = inputsCount;
         networkConfiguration[networkConfiguration.length - 1] = outputsCount;
 
-        for (int i = 1; i <= numberOfHiddenLayers; i++){
+        for (int i = 1; i <= numberOfHiddenLayers; i++) {
             networkConfiguration[i] = hiddenLayer;
         }
 
@@ -119,7 +121,7 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
 
             // get target/desired output
             double[] desiredOutput = testSetRow.getDesiredOutput();
-            int target = (int)desiredOutput[0];
+            int target = (int) desiredOutput[0];
 
             // count predictions
             countPredictions(predicted, target);
@@ -128,7 +130,7 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         System.out.println("Total cases: " + total + ". ");
         System.out.println("Correctly predicted cases: " + correct);
         System.out.println("Incorrectly predicted cases: " + incorrect);
-        double percentTotal = (correct / (double)total) * 100;
+        double percentTotal = (correct / (double) total) * 100;
         System.out.println("Predicted correctly: " + formatDecimalNumber(percentTotal) + "%. ");
     }
 
@@ -147,7 +149,7 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
     public int interpretOutput(double[] array) {
         if (array[0] >= classificationThreshold) {
             return 1;
-        }else {
+        } else {
             return 0;
         }
     }
@@ -198,9 +200,12 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         ed.setEvaluation(eval);
         ed.setCorrectlyClassifiedInstances(confusionMatrix.getTruePositive(1) + confusionMatrix.getTrueNegative(1));
         ed.setIncorrectlyClassifiedInstances(confusionMatrix.getFalsePositive(1) + confusionMatrix.getFalseNegative(1));
+        ed.setTruePositives(confusionMatrix.getTruePositive(1));
+        ed.setFalsePositives(confusionMatrix.getFalsePositive(1));
+        ed.setFalseNegatives(confusionMatrix.getFalseNegative(1));
+        ed.setTrueNegatives(confusionMatrix.getTrueNegative(1));
 
-
-return ed;
+        return ed;
     }
 
 

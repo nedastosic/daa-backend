@@ -6,7 +6,10 @@ public class EvaluationDetails {
     private Evaluation evaluation;
     private int correctlyClassifiedInstances;
     private int incorrectlyClassifiedInstances;
-    private String confusionMatrix;
+    private int truePositives;
+    private int falsePositives;
+    private int falseNegatives;
+    private int trueNegatives;
 
     public Evaluation getEvaluation() {
         return evaluation;
@@ -32,11 +35,35 @@ public class EvaluationDetails {
         this.incorrectlyClassifiedInstances = incorrectlyClassifiedInstances;
     }
 
-    public String getConfusionMatrix() {
-        return confusionMatrix;
+    public int getTruePositives() {
+        return truePositives;
     }
 
-    public void setConfusionMatrix(String confusionMatrix) {
-        this.confusionMatrix = confusionMatrix;
+    public void setTruePositives(int truePositives) {
+        this.truePositives = truePositives;
+    }
+
+    public int getFalsePositives() {
+        return falsePositives;
+    }
+
+    public void setFalsePositives(int falsePositives) {
+        this.falsePositives = falsePositives;
+    }
+
+    public int getFalseNegatives() {
+        return falseNegatives;
+    }
+
+    public void setFalseNegatives(int falseNegatives) {
+        this.falseNegatives = falseNegatives;
+    }
+
+    public int getTrueNegatives() {
+        return trueNegatives;
+    }
+
+    public void setTrueNegatives(int trueNegatives) {
+        this.trueNegatives = trueNegatives;
     }
 }

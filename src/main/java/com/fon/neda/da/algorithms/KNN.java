@@ -45,6 +45,10 @@ public class KNN implements IAlgorithm {
         evaluationDetails.setEvaluation(evaluation);
         evaluationDetails.setCorrectlyClassifiedInstances((int) wekaEvaluation.correct());
         evaluationDetails.setIncorrectlyClassifiedInstances((int) wekaEvaluation.incorrect());
+        evaluationDetails.setTruePositives((int)(wekaEvaluation.numTruePositives(1)));
+        evaluationDetails.setFalseNegatives((int)(wekaEvaluation.numFalseNegatives(1)));
+        evaluationDetails.setFalsePositives((int)(wekaEvaluation.numFalsePositives(1)));
+        evaluationDetails.setTrueNegatives((int)(wekaEvaluation.numTrueNegatives(1)));
 
         return evaluationDetails;
 
