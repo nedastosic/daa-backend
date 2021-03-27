@@ -2,6 +2,8 @@ package com.fon.neda.da.util;
 
 import com.fon.neda.da.entity.Evaluation;
 
+import java.util.HashMap;
+
 public class EvaluationDetails {
     private Evaluation evaluation;
     private int correctlyClassifiedInstances;
@@ -10,6 +12,7 @@ public class EvaluationDetails {
     private int falsePositives;
     private int falseNegatives;
     private int trueNegatives;
+    private String histogramData;
 
     public Evaluation getEvaluation() {
         return evaluation;
@@ -65,5 +68,13 @@ public class EvaluationDetails {
 
     public void setTrueNegatives(int trueNegatives) {
         this.trueNegatives = trueNegatives;
+    }
+
+    public String getHistogramData() {
+        return histogramData;
+    }
+
+    public void setHistogramData(String histogramData) {
+        this.histogramData = histogramData;
     }
 }

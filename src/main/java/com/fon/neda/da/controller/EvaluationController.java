@@ -5,7 +5,9 @@ import com.fon.neda.da.algorithms.*;
 import com.fon.neda.da.entity.*;
 import com.fon.neda.da.service.*;
 import com.fon.neda.da.util.EvaluationDetails;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -22,9 +24,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.Timestamp;
+import java.util.*;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -143,12 +144,16 @@ public class EvaluationController {
             long usedMemoryAfter = runtime.totalMemory() - runtime.freeMemory();
             System.out.println("Memory increased:" + (usedMemoryAfter-usedMemoryBefore));
 
+            Gson gson = new Gson();
+            evaluationDetails.setHistogramData(gson.toJson(createHistogramDataFromDataset(file.getOriginalFilename())));
+
             evaluation = evaluationDetails.getEvaluation();
             evaluation.setElapsedTimeInMillis((endTime - startTime) / 1000000);
             evaluation.setMemoryFootprintInBytes((usedMemoryAfter-usedMemoryBefore));
             evaluation.setAlgorithm(algorithmService.findAlgorithmById(algorithm));
             evaluation.setUser(user);
             evaluation.setDataset(dataset);
+            evaluation.setTimestamp(new Timestamp(System.currentTimeMillis()));
 
 
             for (ParameterCodelist parameterCodelist : parameterCodelistService.findParameterCodelistByAlgorithmId(algorithm)) {
@@ -170,4 +175,41 @@ public class EvaluationController {
 
         return ResponseEntity.ok(evaluationDetails);
     }
+
+    public static HashMap<String, HashMap<Double, Integer>> createHistogramDataFromDataset(String fileName){
+        HashMap<String, HashMap<Double, Integer>> result = new HashMap<>();
+        String[] columns = null;
+        int i = 0;
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/files/" + fileName /*+ ".csv"*/))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] lineItems = line.split(",");
+                if (i == 0){
+                    columns = lineItems;
+                }
+                for(int j = 0; j < lineItems.length; j++){
+                    if (i == 0){
+                        result.put(columns[j], new HashMap<>());
+                    }else{
+                        if(result.get(columns[j]).get(Double.parseDouble(lineItems[j])) == null){
+                            result.get(columns[j]).put(Double.parseDouble(lineItems[j]), 1);
+                        }else{
+                            int oldValue = result.get(columns[j]).get(Double.parseDouble(lineItems[j]));
+                            result.get(columns[j]).put(Double.parseDouble(lineItems[j]),oldValue + 1);
+                        }
+                    }
+                }
+                i++;
+            }
+        }
+        catch(Exception e){
+            // Handle any I/O problems
+        }
+
+
+
+
+        return result;
+    }
+
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -34,6 +35,8 @@ public class Evaluation {
     private long elapsedTimeInMillis;
     @Column(name="memoryFootprintInBytes")
     private long memoryFootprintInBytes;
+    @Column(name="timestamp")
+    private Timestamp timestamp;
     @ManyToOne
     @JoinColumn(name="userId")
     private User user;
@@ -105,6 +108,14 @@ public class Evaluation {
 
     public void setMemoryFootprintInBytes(long memoryFootprintInBytes) {
         this.memoryFootprintInBytes = memoryFootprintInBytes;
+    }
+
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 
     public User getUser() {
