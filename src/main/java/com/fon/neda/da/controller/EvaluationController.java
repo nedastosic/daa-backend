@@ -17,8 +17,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import weka.attributeSelection.PrincipalComponents;
+import weka.core.Instance;
+import weka.core.Instances;
+import weka.core.converters.ConverterUtils;
+import weka.core.converters.LibSVMSaver;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -108,7 +114,7 @@ public class EvaluationController {
             Files.write(path, bytes);
             User user = userService.findByUsername(((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername());
             Dataset dataset = new Dataset(file.getOriginalFilename(), path.toString(), user);
-           // evaluation = new com.fon.neda.da.entity.Evaluation(user, dataset);
+            // evaluation = new com.fon.neda.da.entity.Evaluation(user, dataset);
             dataset = datasetService.save(dataset);
             //evaluation = evaluationService.save(evaluation);
 
@@ -136,20 +142,51 @@ public class EvaluationController {
             long usedMemoryBefore = runtime.totalMemory() - runtime.freeMemory();
             System.out.println("Used Memory before" + usedMemoryBefore);
 
-            long startTime  = System.nanoTime();
+            long startTime = System.nanoTime();
             evaluationDetails = a.evaluate();
             long endTime = System.nanoTime();
             System.out.println("Elapsed time: " + (endTime - startTime));
 
             long usedMemoryAfter = runtime.totalMemory() - runtime.freeMemory();
-            System.out.println("Memory increased:" + (usedMemoryAfter-usedMemoryBefore));
+            System.out.println("Memory increased:" + (usedMemoryAfter - usedMemoryBefore));
 
             Gson gson = new Gson();
             evaluationDetails.setHistogramData(gson.toJson(createHistogramDataFromDataset(file.getOriginalFilename())));
 
+            PrincipalComponents pca = new PrincipalComponents();
+            Instances data = (new ConverterUtils.DataSource("src/main/resources/files/" + file.getOriginalFilename().split("\\.")[0] + ".arff")).getDataSet();
+            pca.setCenterData(false);
+            pca.buildEvaluator(data);
+
+            double[][] pcaData = new double[data.size()][2];
+
+            data = pca.transformedData(data);
+            /*for(int i = 0; i < data.size(); i++){
+                pcaData[i][0] = (data.get(i).value(0));
+                //pcaData[i][1] = (data[i]).split(",")[1];
+            }*/
+            int i = 0;
+            for (Instance instance : data) {
+                pcaData[i][0] = instance.value(0);
+                pcaData[i][1] = instance.value(1);
+                i++;
+                //pcaData[i][0] = (data.get(i).value(0));
+                //pcaData[i][1] = (data[i]).split(",")[1];
+            }
+
+            for (int row = 0; row < pcaData.length; row++) {
+                for (int col = 0; col < pcaData[row].length; col++) {
+                   System.out.println(pcaData[row][col] + " ");
+                }
+                System.out.println();
+            }
+
+            evaluationDetails.setPcaResult(gson.toJson(pcaData));
+
+
             evaluation = evaluationDetails.getEvaluation();
             evaluation.setElapsedTimeInMillis((endTime - startTime) / 1000000);
-            evaluation.setMemoryFootprintInBytes((usedMemoryAfter-usedMemoryBefore));
+            evaluation.setMemoryFootprintInBytes((usedMemoryAfter - usedMemoryBefore));
             evaluation.setAlgorithm(algorithmService.findAlgorithmById(algorithm));
             evaluation.setUser(user);
             evaluation.setDataset(dataset);
@@ -176,7 +213,7 @@ public class EvaluationController {
         return ResponseEntity.ok(evaluationDetails);
     }
 
-    public static HashMap<String, HashMap<Double, Integer>> createHistogramDataFromDataset(String fileName){
+    public static HashMap<String, HashMap<Double, Integer>> createHistogramDataFromDataset(String fileName) {
         HashMap<String, HashMap<Double, Integer>> result = new HashMap<>();
         String[] columns = null;
         int i = 0;
@@ -184,29 +221,26 @@ public class EvaluationController {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] lineItems = line.split(",");
-                if (i == 0){
+                if (i == 0) {
                     columns = lineItems;
                 }
-                for(int j = 0; j < lineItems.length; j++){
-                    if (i == 0){
+                for (int j = 0; j < lineItems.length; j++) {
+                    if (i == 0) {
                         result.put(columns[j], new HashMap<>());
-                    }else{
-                        if(result.get(columns[j]).get(Double.parseDouble(lineItems[j])) == null){
+                    } else {
+                        if (result.get(columns[j]).get(Double.parseDouble(lineItems[j])) == null) {
                             result.get(columns[j]).put(Double.parseDouble(lineItems[j]), 1);
-                        }else{
+                        } else {
                             int oldValue = result.get(columns[j]).get(Double.parseDouble(lineItems[j]));
-                            result.get(columns[j]).put(Double.parseDouble(lineItems[j]),oldValue + 1);
+                            result.get(columns[j]).put(Double.parseDouble(lineItems[j]), oldValue + 1);
                         }
                     }
                 }
                 i++;
             }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             // Handle any I/O problems
         }
-
-
 
 
         return result;

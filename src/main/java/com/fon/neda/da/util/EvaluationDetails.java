@@ -13,6 +13,7 @@ public class EvaluationDetails {
     private int falseNegatives;
     private int trueNegatives;
     private String histogramData;
+    private String pcaResult;
 
     public Evaluation getEvaluation() {
         return evaluation;
@@ -76,5 +77,12 @@ public class EvaluationDetails {
 
     public void setHistogramData(String histogramData) {
         this.histogramData = histogramData;
+    }
+
+    public void setPcaResult(String pcaResult) {
+        this.pcaResult = pcaResult;
+    }
+    public String getPcaResult() {
+        return this.pcaResult;
     }
 }
