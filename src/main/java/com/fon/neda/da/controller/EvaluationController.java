@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fon.neda.da.algorithms.*;
 import com.fon.neda.da.entity.*;
 import com.fon.neda.da.service.*;
+import com.fon.neda.da.util.ArffConverter;
+import com.fon.neda.da.util.CSVToArffConverter;
 import com.fon.neda.da.util.EvaluationDetails;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +22,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import weka.attributeSelection.PrincipalComponents;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.converters.CSVSaver;
 import weka.core.converters.ConverterUtils;
 import weka.core.converters.LibSVMSaver;
+import weka.filters.Filter;
+import weka.filters.supervised.attribute.NominalToBinary;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -134,7 +139,28 @@ public class EvaluationController {
                 System.out.println();
             }
 
-            IAlgorithm a = AlgorithmFactory.generate(algorithm, params, file.getOriginalFilename().split("\\.")[0], className);
+            String fileName = file.getOriginalFilename().split("\\.")[0];
+
+            IAlgorithm a;
+
+            CSVToArffConverter.convert(fileName);
+            ArffConverter.convert(fileName, className);
+            Instances rawData = (new ConverterUtils.DataSource("src/main/resources/files/" + fileName + ".arff")).getDataSet();
+            rawData.setClassIndex(rawData.numAttributes() - 1);
+
+            //One hot encoding
+            NominalToBinary nominalToBinary = new NominalToBinary();
+            nominalToBinary.setInputFormat(rawData);
+            Instances dataAfterOneHotEncoding = Filter.useFilter(rawData, nominalToBinary);
+
+            CSVSaver saver = new CSVSaver();
+            saver.setInstances(dataAfterOneHotEncoding);
+
+            String newFileName = fileName + "-" + System.nanoTime();
+            saver.setFile(new File("src/main/resources/files/" + newFileName + ".csv"));
+            saver.writeBatch();
+            a = AlgorithmFactory.generate(algorithm, params, newFileName /*file.getOriginalFilename().split("\\.")[0]*/, className);
+            //IAlgorithm a = AlgorithmFactory.generate(algorithm, params, newFileName /*file.getOriginalFilename().split("\\.")[0]*/, className);
             //Evaluation e = a.evaluate();
 
             System.gc();
@@ -151,7 +177,7 @@ public class EvaluationController {
             System.out.println("Memory increased:" + (usedMemoryAfter - usedMemoryBefore));
 
             Gson gson = new Gson();
-            evaluationDetails.setHistogramData(gson.toJson(createHistogramDataFromDataset(file.getOriginalFilename())));
+            evaluationDetails.setHistogramData(gson.toJson(createHistogramDataFromDataset(newFileName + ".csv"/*file.getOriginalFilename()*/)));
 
             PrincipalComponents pca = new PrincipalComponents();
             Instances data = (new ConverterUtils.DataSource("src/main/resources/files/" + file.getOriginalFilename().split("\\.")[0] + ".arff")).getDataSet();
@@ -176,7 +202,7 @@ public class EvaluationController {
 
             for (int row = 0; row < pcaData.length; row++) {
                 for (int col = 0; col < pcaData[row].length; col++) {
-                   System.out.println(pcaData[row][col] + " ");
+                    System.out.println(pcaData[row][col] + " ");
                 }
                 System.out.println();
             }

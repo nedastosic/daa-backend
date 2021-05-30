@@ -6,8 +6,15 @@ import com.fon.neda.da.util.EvaluationDetails;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.lazy.IBk;
+import weka.classifiers.trees.J48;
 import weka.core.Instances;
+import weka.core.converters.CSVSaver;
 import weka.core.converters.ConverterUtils;
+import weka.filters.Filter;
+import weka.filters.supervised.attribute.NominalToBinary;
+
+import java.io.File;
+import java.io.IOException;
 
 public class KNN implements IAlgorithm {
     private String fileName;
@@ -28,16 +35,18 @@ public class KNN implements IAlgorithm {
         ArffConverter.convert(fileName, className);
         Instances data = (new ConverterUtils.DataSource("src/main/resources/files/" + fileName + ".arff")).getDataSet();
         data.setClassIndex(data.numAttributes() - 1);
+        Instances trainData = data.trainCV(2, 0);
+        Instances testData = data.testCV(2, 0);
 
-        Classifier ibk = new IBk(k);
-        ibk.buildClassifier(data);
+        Classifier cls = new IBk(k);
+        cls.buildClassifier(trainData);
 
-        Evaluation wekaEvaluation = new Evaluation(data);
-        wekaEvaluation.evaluateModel(ibk, data);
+        Evaluation wekaEvaluation = new Evaluation(trainData);
+        wekaEvaluation.evaluateModel(cls, testData);
 
         com.fon.neda.da.entity.Evaluation evaluation = new com.fon.neda.da.entity.Evaluation();
         evaluation.setPrecision(wekaEvaluation.precision(1));
-        evaluation.setAccuracy(wekaEvaluation.areaUnderROC(1));
+        evaluation.setAccuracy(wekaEvaluation.pctCorrect() / 100);
         evaluation.setRecall(wekaEvaluation.recall(1));
         evaluation.setF1(wekaEvaluation.fMeasure(1));
 

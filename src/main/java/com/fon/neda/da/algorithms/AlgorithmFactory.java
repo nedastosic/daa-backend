@@ -16,7 +16,7 @@ public class AlgorithmFactory {
                     KNNParams knnParams = knnMapper.readValue(params.getBytes(), KNNParams.class);
                     return new KNN(fileName, knnParams.k, className);
                 case 2:
-                    return new NaiveBayes(fileName, className);
+                    return new DecisionTree(fileName, className);
                 case 3:
                     return new LogisticRegression(fileName, className);
 
