@@ -47,9 +47,6 @@ public class ArffConverter {
             }
         }
 
-        for (String s : uniqueClasses) {
-            System.out.println(s);
-        }
 
         for (String s : uniqueClasses) {
             if (!s.equals(uniqueClasses.get(uniqueClasses.size() - 1))) {

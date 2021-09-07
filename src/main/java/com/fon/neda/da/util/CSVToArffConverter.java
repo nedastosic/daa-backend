@@ -16,6 +16,7 @@ public class CSVToArffConverter {
 
     public static void convert(String fileName) throws IOException {
         CSVLoader loader1 = new CSVLoader();
+        //System.out.println(fileName);
         loader1.setSource(new File("src/main/resources/files/" + fileName + ".csv"));
         Instances data = loader1.getDataSet();
 

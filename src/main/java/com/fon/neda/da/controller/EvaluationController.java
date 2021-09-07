@@ -75,7 +75,7 @@ public class EvaluationController {
     }
 
     @DeleteMapping("/evaluations/delete/{id}")
-    public void myEvaluations(@PathVariable Long id) {
+    public void deleteEvaluation(@PathVariable Long id) {
         evaluationService.deleteEvaluationById(id);
     }
 
@@ -85,7 +85,20 @@ public class EvaluationController {
     }
 
     @RequestMapping(path = "/datasets/{id}", method = RequestMethod.GET)
-    public ResponseEntity<Resource> download(@PathVariable Long id) throws IOException {
+    public ResponseEntity<Resource> downloadDataset(@PathVariable Long id) throws IOException {
+
+        Path path = Paths.get(datasetService.findDatasetById(id).getPath());
+        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+
+        Dataset dataset = datasetService.findDatasetById(id);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + dataset.getName() + "\"")
+                .body(resource);
+    }
+
+    @RequestMapping(path = "/datasets/preview/{id}", method = RequestMethod.GET)
+    public ResponseEntity<Resource> previewDataset(@PathVariable Long id) throws IOException {
 
         Path path = Paths.get(datasetService.findDatasetById(id).getPath());
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
@@ -99,7 +112,7 @@ public class EvaluationController {
 
 
     @PostMapping(value = "/ingest", headers = "Content-Type= multipart/form-data")
-    public ResponseEntity<EvaluationDetails> ingestDataFile(@RequestParam("file") MultipartFile file, @RequestParam("params") String params, @RequestParam("className") String className, @RequestParam("algorithm") int algorithm, RedirectAttributes redirectAttributes) {
+    public ResponseEntity<EvaluationDetails> performAndSaveEvaluation(@RequestParam("file") MultipartFile file, @RequestParam("params") String params, @RequestParam("className") String className, @RequestParam("algorithm") int algorithm, RedirectAttributes redirectAttributes) {
 
 
         if (file.isEmpty()) {
@@ -112,7 +125,6 @@ public class EvaluationController {
 
         try {
 
-            // Get the file and save it somewhere
             byte[] bytes = file.getBytes();
             //Path path = Paths.get("FOLDER TO UPLOAD TO" + file.getOriginalFilename());
             Path path = Paths.get("src/main/resources/files/" + file.getOriginalFilename());

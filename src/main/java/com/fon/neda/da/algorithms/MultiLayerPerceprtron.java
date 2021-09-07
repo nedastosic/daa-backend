@@ -55,12 +55,12 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         int inputsCount = values.length - 1;
         int outputsCount = 1;
 
-        System.out.println("File name: " + fileName);
+        /*System.out.println("File name: " + fileName);
         System.out.println("hiddenLayer: " + hiddenLayer);
         System.out.println("numberOfHiddenLayers: " + numberOfHiddenLayers);
         System.out.println("learningRate: " + learningRate);
         System.out.println("maxError: " + maxError);
-        System.out.println("maxIterations: " + maxIterations);
+        System.out.println("maxIterations: " + maxIterations);*/
 
 
         // Create data set from file
@@ -76,7 +76,7 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         normalizer.normalize(trainingSet);
         normalizer.normalize(testSet);
 
-        System.out.println("Creating neural network...");
+        //System.out.println("Creating neural network...");
         //Create MultiLayerPerceptron neural network
 
         int[] networkConfiguration = new int[numberOfHiddenLayers + 2];
@@ -97,11 +97,11 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         learningRule.setMaxError(maxError);
         learningRule.setMaxIterations(maxIterations);
 
-        System.out.println("Training network...");
+        //System.out.println("Training network...");
         //train the network with training set
         neuralNet.learn(trainingSet);
 
-        System.out.println("Testing network...");
+        //System.out.println("Testing network...");
         eval = evaluate(neuralNet, testSet);
 
         return eval;
@@ -139,10 +139,10 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
         BackPropagation bp = (BackPropagation) event.getSource();
         if (event.getEventType().equals(LearningEvent.Type.LEARNING_STOPPED)) {
             double error = bp.getTotalNetworkError();
-            System.out.println("Training completed in " + bp.getCurrentIteration() + " iterations, ");
-            System.out.println("With total error: " + formatDecimalNumber(error));
+            //System.out.println("Training completed in " + bp.getCurrentIteration() + " iterations, ");
+            //System.out.println("With total error: " + formatDecimalNumber(error));
         } else {
-            System.out.println("Iteration: " + bp.getCurrentIteration() + " | Network error: " + bp.getTotalNetworkError());
+            //System.out.println("Iteration: " + bp.getCurrentIteration() + " | Network error: " + bp.getTotalNetworkError());
         }
     }
 
@@ -170,7 +170,7 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
 
     public EvaluationDetails evaluate(org.neuroph.core.NeuralNetwork neuralNet, DataSet dataSet) {
         Evaluation eval = new Evaluation();
-        System.out.println("Calculating performance indicators for neural network.");
+        //System.out.println("Calculating performance indicators for neural network.");
 
         org.neuroph.eval.Evaluation evaluation = new org.neuroph.eval.Evaluation();
         evaluation.addEvaluator(new ErrorEvaluator(new MeanSquaredError()));
@@ -181,15 +181,15 @@ public class MultiLayerPerceprtron implements LearningEventListener, IAlgorithm 
 
         ClassifierEvaluator evaluator = evaluation.getEvaluator(ClassifierEvaluator.Binary.class);
         ConfusionMatrix confusionMatrix = evaluator.getResult();
-        System.out.println("Confusion matrrix:\r\n");
+        /*System.out.println("Confusion matrrix:\r\n");
         System.out.println(confusionMatrix.toString() + "\r\n\r\n");
-        System.out.println("Classification metrics\r\n");
+        System.out.println("Classification metrics\r\n");*/
         ClassificationMetrics[] metrics = ClassificationMetrics.createFromMatrix(confusionMatrix);
         ClassificationMetrics.Stats average = ClassificationMetrics.average(metrics);
-        for (ClassificationMetrics cm : metrics) {
+        /*for (ClassificationMetrics cm : metrics) {
             System.out.println(cm.toString() + "\r\n");
         }
-        System.out.println(average.toString());
+        System.out.println(average.toString());*/
 
         eval.setAccuracy(average.accuracy);
         eval.setRecall(average.recall);
